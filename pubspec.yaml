@@ -1,0 +1,33 @@
+name: ReuseMart
+description: "ReuseMart"
+
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  http: ^0.13.3
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+
+  firebase_core: ^2.30.0
+  firebase_messaging: ^14.7.0
+  flutter_local_notifications: ^17.0.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
