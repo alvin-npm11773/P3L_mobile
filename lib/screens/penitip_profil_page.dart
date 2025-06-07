@@ -88,10 +88,14 @@ class _PenitipProfilPageState extends State<PenitipProfilPage> {
           Text("Komisi: ${profileData!['komisi'] ?? '0'}",
               style: TextStyle(fontSize: 18)),
           SizedBox(height: 30),
+          Expanded(child: Container()),
           Center(
             child: ElevatedButton(
               onPressed: logout,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               child: Text("Log Out"),
             ),
           )

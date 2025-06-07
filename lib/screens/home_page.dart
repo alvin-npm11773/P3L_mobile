@@ -67,7 +67,7 @@ class HomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AspectRatio(
-                        aspectRatio: 1, // Kotak
+                        aspectRatio: 1,
                         child: PageView.builder(
                           itemCount: barang.barangImages?.length ?? 0,
                           itemBuilder: (context, imgIndex) {
@@ -81,24 +81,24 @@ class HomePage extends StatelessWidget {
                           },
                         ),
                       ),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          alignment: Alignment.bottomLeft,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                barang.namaBarang,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Rp${NumberFormat("#,##0", "id_ID").format(barang.hargaJual)}',
-                              ),
-                            ],
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              barang.namaBarang,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Rp${NumberFormat("#,##0", "id_ID").format(barang.hargaJual)}',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ],
                         ),
                       ),
                     ],

@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:ReuseMart/models/merchandise.dart';
+import 'package:ReuseMart/services/api_service.dart';
+import 'detailMerch_page.dart';
+import 'klaimMerch_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+String buildImageUrl(String path) {
+  return 'http://10.0.2.2:8000/storage/$path';
+}
 
 class PembeliProfilPage extends StatefulWidget {
   @override
@@ -28,7 +37,7 @@ class _PembeliProfilPageState extends State<PembeliProfilPage> {
 
     if (storedToken != null) {
       setState(() => token = 'Bearer $storedToken');
-      fetchProfileData();
+      await fetchProfileData();
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }
@@ -36,12 +45,9 @@ class _PembeliProfilPageState extends State<PembeliProfilPage> {
 
   Future<void> fetchProfileData() async {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/penitip/profile'),
+      Uri.parse('http://10.0.2.2:8000/api/pembeli/profile'),
       headers: {'Authorization': token},
     );
-
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
@@ -72,8 +78,6 @@ class _PembeliProfilPageState extends State<PembeliProfilPage> {
       return Center(child: CircularProgressIndicator());
     }
 
-    print(jsonEncode(profileData));
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -85,10 +89,15 @@ class _PembeliProfilPageState extends State<PembeliProfilPage> {
           Text("Email: ${profileData!['email']}",
               style: TextStyle(fontSize: 18)),
           SizedBox(height: 10),
+          Text("Poin: ${profileData!['poin']}", style: TextStyle(fontSize: 18)),
+          Expanded(child: Container()),
           Center(
             child: ElevatedButton(
               onPressed: logout,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               child: Text("Log Out"),
             ),
           )
@@ -97,13 +106,152 @@ class _PembeliProfilPageState extends State<PembeliProfilPage> {
     );
   }
 
+  Widget buildMerchandisePage() {
+    return FutureBuilder<List<Merchandise>>(
+      future: fetchMerchandise(token),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('Tidak ada merchandise tersedia'));
+        }
+
+        final merchandiseList = snapshot.data!;
+
+        return GridView.builder(
+          padding: EdgeInsets.all(8),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: merchandiseList.length,
+          itemBuilder: (context, index) {
+            final merch = merchandiseList[index];
+            return InkWell(
+              onTap: () async {
+                final result = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailMerchandisePage(
+                      merch: merch,
+                      pembeliId: profileData!['id'],
+                      poinUser: profileData!['poin'],
+                    ),
+                  ),
+                );
+                setState(() {});
+              },
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Image.network(
+                          buildImageUrl(merch.gambar),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Center(child: Icon(Icons.broken_image)),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            merch.namaMerchandise,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Poin: ${merch.harga}',
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Stok: ${merch.stokMerchandise}',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pages = [buildProfilePage()];
+    final pages = [buildProfilePage(), buildMerchandisePage()];
 
     return Scaffold(
-      appBar: AppBar(title: Text("Penitip")),
+      appBar: AppBar(
+        title: Text("Pembeli"),
+        actions: _selectedIndex == 1
+            ? [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => KlaimMerchandisePage(
+                              pembeliId: profileData!['id']),
+                        ),
+                      );
+                      fetchProfileData();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
+                      textStyle: TextStyle(fontSize: 14),
+                    ),
+                    child: Text("Sedang diklaim"),
+                  ),
+                ),
+              ]
+            : null,
+      ),
       body: pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.card_giftcard), label: 'Merchandise'),
+        ],
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          if (index == 0) {
+            fetchProfileData();
+          }
+        },
+      ),
     );
   }
 }

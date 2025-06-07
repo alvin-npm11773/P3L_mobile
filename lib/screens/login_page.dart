@@ -3,9 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:ReuseMart/services/notification_service.dart'; // Pastikan ini ada dan benar
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -41,18 +38,14 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200 && data['success']) {
         final redirect = data['redirect'];
         final token = data['token'];
-        final userId = data['user_id'];
 
         String role = _extractRoleFromRedirect(redirect);
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
         await prefs.setString('user_role', role);
-        await prefs.setInt('user_id', userId);
 
         Navigator.pushReplacementNamed(context, redirect);
-
-        _sendFcmTokenAfterLogin();
       } else {
         setState(() {
           _errorMessage = data['message'] ?? 'Login gagal';
@@ -63,27 +56,6 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
         _errorMessage = 'Terjadi kesalahan: $e';
       });
-    }
-  }
-
-  Future<void> _sendFcmTokenAfterLogin() async {
-    try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken == null) return;
-
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token') ?? '';
-      final role = prefs.getString('user_role') ?? 'null';
-      final userId = prefs.getInt('user_id') ?? 0;
-
-      if (userId == 0) {
-        print("User ID tidak ditemukan");
-        return;
-      }
-
-      await saveTokenToBackend(fcmToken, role, token, userId);
-    } catch (e) {
-      print("Gagal mengirim FCM token: $e");
     }
   }
 

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+String buildImageUrl(String path) {
+  return 'http://10.0.2.2:8000/storage/$path';
+}
 
 class HunterPage extends StatefulWidget {
   @override
@@ -46,8 +51,29 @@ class _HunterPageState extends State<HunterPage> {
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
       setState(() => profileData = result['data']);
+
+      int pegawaiId = result['data']['id'];
+      fetchHistoryData(pegawaiId);
     } else {
       print('Gagal memuat profil');
+    }
+  }
+
+  List<dynamic> historyData = [];
+
+  Future<void> fetchHistoryData(int pegawaiId) async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/transaksi/$pegawaiId/historyKomisi'),
+      headers: {'Authorization': token},
+    );
+
+    if (response.statusCode == 200) {
+      final result = json.decode(response.body);
+      setState(() {
+        historyData = result['data'];
+      });
+    } else {
+      print('Gagal memuat history komisi');
     }
   }
 
@@ -92,13 +118,19 @@ class _HunterPageState extends State<HunterPage> {
           Text("Nama Role: ${profileData!['role'] ?? 'Tidak ada role'}",
               style: TextStyle(fontSize: 18)),
           SizedBox(height: 10),
-          Text("Komisi: ${profileData!['komisi'] ?? '0'}",
-              style: TextStyle(fontSize: 18)),
+          Text(
+            "Komisi: Rp${NumberFormat("#,##0", "id_ID").format(profileData!['komisi'] ?? 0)}",
+            style: TextStyle(fontSize: 18),
+          ),
           SizedBox(height: 30),
+          Expanded(child: Container()),
           Center(
             child: ElevatedButton(
               onPressed: logout,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               child: Text("Log Out"),
             ),
           )
@@ -108,7 +140,63 @@ class _HunterPageState extends State<HunterPage> {
   }
 
   Widget buildHistoryPage() {
-    return Center(child: Text("Halaman History"));
+    if (historyData.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: historyData.map<Widget>((transaksi) {
+          return Card(
+            margin: EdgeInsets.all(10),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("ID Transaksi: ${transaksi['id_transaksi']}",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 10),
+                  Text("ID Barang: ${transaksi['id_barang']}"),
+                  SizedBox(height: 10),
+                  Text("Nama Barang: ${transaksi['nama_barang']}"),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: transaksi['barang_images'].length,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 100,
+                                child: Image.network(
+                                  buildImageUrl(transaksi['barang_images']
+                                      [index]['gambar']),
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Komisi Hunter: Rp${NumberFormat("#,##0", "id_ID").format(transaksi['komisi_hunter'])}",
+                  ),
+                  SizedBox(height: 10),
+                  Text("Nama Penitip: ${transaksi['nama_penitip']}"),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   @override

@@ -28,6 +28,7 @@ class _DetailBarangPageState extends State<DetailBarangPage> {
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               height: 300,
@@ -43,7 +44,7 @@ class _DetailBarangPageState extends State<DetailBarangPage> {
                     itemBuilder: (context, index) {
                       return Image.network(
                         buildImageUrl(barang.barangImages[index].gambar),
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         width: double.infinity,
                       );
                     },
@@ -73,7 +74,7 @@ class _DetailBarangPageState extends State<DetailBarangPage> {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -81,25 +82,26 @@ class _DetailBarangPageState extends State<DetailBarangPage> {
                 children: [
                   Text(
                     barang.namaBarang,
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Harga: Rp${NumberFormat("#,##0", "id_ID").format(barang.hargaJual)}',
                     style: TextStyle(fontSize: 18, color: Colors.green[700]),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Garansi: ${barang.garansi}',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Lama Pemakaian: ${barang.lamaPemakaian} bulan',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
                   ),
                 ],
               ),
