@@ -1,44 +1,37 @@
-class Barang {
-  final String namaBarang;
-  final double hargaJual;
-  final String status;
-  final List<BarangImage> barangImages;
-  final String garansi;
-  final int lamaPemakaian;
+class Pegawai {
+  final int id;
+  final String namaPegawai;
+  final String email;
+  final String tanggalLahir;
+  final String role;
+  final int? komisi;
 
-  Barang({
-    required this.namaBarang,
-    required this.hargaJual,
-    required this.status,
-    required this.barangImages,
-    required this.garansi,
-    required this.lamaPemakaian,
+  Pegawai({
+    required this.id,
+    required this.namaPegawai,
+    required this.email,
+    required this.tanggalLahir,
+    required this.role,
+    this.komisi,
   });
 
-  factory Barang.fromJson(Map<String, dynamic> json) {
-    var list = json['barang_images'] as List;
-    List<BarangImage> imagesList =
-        list.map((i) => BarangImage.fromJson(i)).toList();
-
-    return Barang(
-      namaBarang: json['nama_barang'],
-      hargaJual: (json['harga_jual'] as num).toDouble(),
-      status: json['status'],
-      barangImages: imagesList,
-      garansi: json['garansi'] ?? '-',
-      lamaPemakaian: json['lama_pemakaian'] ?? 0,
+  factory Pegawai.fromJson(Map<String, dynamic> json) {
+    return Pegawai(
+      id: json['id'],
+      namaPegawai: json['nama_pegawai'],
+      email: json['email'],
+      tanggalLahir: json['tanggal_lahir'],
+      role: json['role'],
+      komisi: json['komisi'],
     );
   }
-}
 
-class BarangImage {
-  final String gambar;
-
-  BarangImage({required this.gambar});
-
-  factory BarangImage.fromJson(Map<String, dynamic> json) {
-    return BarangImage(
-      gambar: json['gambar'],
-    );
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nama_pegawai': namaPegawai,
+        'email': email,
+        'tanggal_lahir': tanggalLahir,
+        'role': role,
+        'komisi': komisi,
+      };
 }
